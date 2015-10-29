@@ -1,9 +1,35 @@
-<h4>Hi <%= session[:player_name] %> !</h4>
+<h4>Hi <%= session[:player_name] %>!</h4>
 
-Your cards are:
-<ul>
-<% session[:player_cards].each do |card| %>
-  <li><%= card.to_s %></li>
+<div class="well">
+  <h5>Dealer cards</h5>
+    <%= '<img src=' + cover_card + ' alt="" />' %>
+  <% session[:dealer_hand].each_with_index do |card, idx| %>
+    <% if idx != 0 %>
+      <%= '<img src=' + show_card(card) + ' alt="" />' %>
+    <% end %>
+  <% end %>
+</div>
+
+<div class="well">
+  <h5>Your cards</h5>
+  <% session[:player_hand].each do |card| %>
+    <%= '<img src=' + show_card(card) + ' alt="" />' %>
+  <% end %>
+</div>
+
+
+<p>Your total is: <%= @player_points %>.</p>
+
+<% if @text_for_player_over_21 != nil %>
+  <div class="alert alert-error"><%= @text_for_player_over_21 %></p>
+<% elsif @text_for_player_21 != nil %>
+  <div class="alert alert-success"><%= @text_for_player_21 %></p>
+<% else %>
+  <p>What would you like to do?</p>
+  <form action="/player/hit" method="post">
+    <button type="submit" class="btn">Hit</button>
+  </form>
+  <form action='/player/stay' method="post">
+    <button type="submit" class="btn">Stay</button>
+  </form>
 <% end %>
-</ul>
-Your total is: <%= calculate_total(session[:player_cards]) %>
