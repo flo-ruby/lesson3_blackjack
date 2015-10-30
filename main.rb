@@ -60,6 +60,11 @@ helpers do
   end
 end
 
+before do
+  @show_hit_or_stay_buttons = true
+  @show_dealer_card = false
+end
+
 get '/' do
   if session[:player_name]
     redirect '/make_bet'
@@ -74,7 +79,8 @@ end
 
 post '/new_player' do
   if params[:player_name] == ""
-    redirect '/'
+    @error = "Name is required!"
+    halt erb(:set_name)
   end
   session[:player_name] = params[:player_name]
   session[:player_money] = INITIAL_MONEY
@@ -110,20 +116,45 @@ get '/game' do
   @player_points = hand_value(session[:player_hand])
 
   if @player_points > 21
-    @text_for_player_over_21 = "You have #{@player_points} points. That is more than 21! Dealer wins."
+    @show_hit_or_stay_buttons = false
+    @error = "You have #{@player_points} points. That is more than 21! Dealer wins."
   elsif @player_points == 21
-    @text_for_player_21 = "Wow, you got 21! You made the blackjack and you win!"
+    @show_hit_or_stay_buttons = false
+    @success = "Wow, you got 21! You made the blackjack and you win!"
   end
 
   # render template
   erb :game
 end
 
-post '/player/hit' do
+post '/player_hits' do
   session[:player_hand] << session[:shoe].pop
   redirect '/game'
 end
 
-post '/player/stay' do
-  "Player turn is over"
+post '/dealer_turn' do
+  @show_hit_or_stay_buttons = false
+  @show_dealer_card = true
+
+  @dealer_points = hand_value(session[:dealer_hand])
+  @player_points = hand_value(session[:player_hand])
+
+  while @dealer_points < 17
+    session[:dealer_hand] << session[:shoe].pop
+    @dealer_points = hand_value(session[:dealer_hand])
+  end
+
+  if @dealer_points > 21
+    @success =  "Dealer has #{@dealer_points} which is more than 21. You win!"
+  elsif @dealer_points == 21
+    @error = "Dealer has 21. Dealer wins."
+  elsif @player_points > @dealer_points
+    @success = "You have more points than the dealer. You win!"
+  elsif @player_points < @dealer_points
+    @error = "Dealer has more points. Dealer wins."
+  else
+    @info = "It's a tie."
+  end
+ 
+  erb :game
 end
