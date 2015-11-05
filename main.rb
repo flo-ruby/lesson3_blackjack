@@ -58,19 +58,39 @@ helpers do
     end
     return v
   end
+
+  def player_wins(msg)
+    @show_hit_or_stay_buttons = false
+    @replay = true
+    @success = msg
+    session[:player_money] += session[:player_bet]
+    session[:player_bet] = 0
+  end
+
+  def player_loses(msg)
+    @show_hit_or_stay_buttons = false
+    @replay = true
+    @error = msg
+    session[:player_money] -= session[:player_bet]
+    session[:player_bet] = 0
+  end
+
+  def tie(msg)
+    @show_hit_or_stay_buttons = false
+    @replay = true
+    @info = msg
+  end
 end
 
 before do
   @show_hit_or_stay_buttons = true
   @show_dealer_card = false
+  @replay = false
 end
 
 get '/' do
-  if session[:player_name]
-    redirect '/make_bet'
-  else
-    redirect '/new_player'
-  end
+  session = {}
+  redirect '/new_player'
 end
 
 get '/new_player' do
@@ -88,18 +108,23 @@ post '/new_player' do
 end
 
 get '/make_bet' do
+  if session[:player_money] == 0
+    redirect '/end_game'
+  end
   erb :make_bet
 end
 
 post '/make_bet' do
-  if (params[:bet_amount].to_i == 0)
-    redirect '/make_bet'
-  elsif params[:bet_amount].to_i > session[:player_money]
-    redirect '/make_bet'
-  else
-    session[:bet_amount] = params[:bet_amount].to_i
-    redirect '/draw_cards'
+  if (params[:player_bet].to_i <= 0)
+    @error = "Please enter positive amount"
+    halt erb(:make_bet)
   end
+  if params[:player_bet].to_i > session[:player_money]
+    @error = "You don't have enough money!"
+    halt erb(:make_bet)
+  end
+  session[:player_bet] = params[:player_bet].to_i
+  redirect '/draw_cards'
 end
 
 get '/draw_cards' do
@@ -116,11 +141,9 @@ get '/game' do
   @player_points = hand_value(session[:player_hand])
 
   if @player_points > 21
-    @show_hit_or_stay_buttons = false
-    @error = "You have #{@player_points} points. That is more than 21! Dealer wins."
+    player_loses("You have #{@player_points} points. That is more than 21! Dealer wins.")
   elsif @player_points == 21
-    @show_hit_or_stay_buttons = false
-    @success = "Wow, you got 21! You made the blackjack and you win!"
+    player_wins("Wow, you got 21! You made the blackjack and you win!")
   end
 
   # render template
@@ -145,16 +168,21 @@ post '/dealer_turn' do
   end
 
   if @dealer_points > 21
-    @success =  "Dealer has #{@dealer_points} which is more than 21. You win!"
+    player_wins("Dealer has #{@dealer_points} which is more than 21. You win!")
   elsif @dealer_points == 21
-    @error = "Dealer has 21. Dealer wins."
+    player_loses("Dealer has 21. Dealer wins.")
   elsif @player_points > @dealer_points
-    @success = "You have more points than the dealer. You win!"
+    player_wins("You have more points than the dealer. You win!")
   elsif @player_points < @dealer_points
-    @error = "Dealer has more points. Dealer wins."
+    player_loses("Dealer has more points. Dealer wins.")
   else
-    @info = "It's a tie."
+    tie("It's a tie.")
   end
- 
+
   erb :game
+end
+
+get '/end_game' do
+  @player_money = session[:player_money]
+  erb :end_game
 end

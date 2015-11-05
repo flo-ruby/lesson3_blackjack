@@ -21,10 +21,16 @@
 <% if @show_hit_or_stay_buttons %>
   <p>Your total is: <%= @player_points %>.</p>
   <p>What would you like to do?</p>
-  <form id="hit-form" action="/player_hits" method="post">
+  <form class="left-button" action="/player_hits" method="post">
     <button type="submit" class="btn btn-success">Hit</button>
   </form>
-  <form id="stay-form" action='/dealer_turn' method="post">
+  <form class="right-button" action='/dealer_turn' method="post">
     <button type="submit" class="btn btn-warning">Stay</button>
   </form>
+<% end %>
+
+<% if @replay %>
+  <p>Replay?</p>
+  <a href="/make_bet" class="btn btn-success left-button">Yes</a>
+  <a href="/end_game" class="btn btn-warning right-button">No</a>
 <% end %>

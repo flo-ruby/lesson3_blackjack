@@ -1,6 +1,10 @@
-form#hit-form, form#stay-form {
+.left-button {
   float: left;
-  padding-right: 10px;
+  margin-right: 10px;
+}
+
+.right-button {
+  float: left;
 }
 
 img.image-card {
