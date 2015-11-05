@@ -1,7 +1,7 @@
 <h4>Hi <%= session[:player_name] %>!</h4>
 
 <div class="well">
-  <h5>Dealer cards</h5>
+  <h4>Dealer cards</h4>
   <% session[:dealer_hand].each_with_index do |card, idx| %>
     <% if (!@show_dealer_card) && (idx == 0) %>
       <%= '<img class="image-card" src=' + cover_card + ' /> ' %>
@@ -9,10 +9,16 @@
       <%= '<img class="image-card" src=' + show_card(card) + ' />' %>
     <% end %>
   <% end %>
+  <% if @show_next_card_button %>
+    <h5>Dealer has <%= @dealer_points %> and will hit.</h5>
+    <form action="/dealer_hits" method="post">
+      <button class="btn btn-info">Show dealer card &rarr;</button>
+    </form>
+  <% end %>
 </div>
 
 <div class="well">
-  <h5>Your cards</h5>
+  <h4>Your cards</h4>
   <% session[:player_hand].each do |card| %>
     <%= '<img class="image-card" src=' + show_card(card) + ' />' %>
   <% end %>
@@ -24,7 +30,7 @@
   <form class="left-button" action="/player_hits" method="post">
     <button type="submit" class="btn btn-success">Hit</button>
   </form>
-  <form class="right-button" action='/dealer_turn' method="post">
+  <form class="right-button" action='/player_stays' method="post">
     <button type="submit" class="btn btn-warning">Stay</button>
   </form>
 <% end %>

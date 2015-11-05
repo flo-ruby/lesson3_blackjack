@@ -85,6 +85,7 @@ end
 before do
   @show_hit_or_stay_buttons = true
   @show_dealer_card = false
+  @show_next_card_button = false
   @replay = false
 end
 
@@ -155,26 +156,44 @@ post '/player_hits' do
   redirect '/game'
 end
 
-post '/dealer_turn' do
+post '/player_stays' do
+  redirect "/dealer_turn"
+end
+
+get '/dealer_turn' do
+  @show_dealer_card = true
+  @show_hit_or_stay_buttons = false
+  @dealer_points = hand_value(session[:dealer_hand])
+
+  if @dealer_points < 17
+    @show_next_card_button  = true
+  else
+    redirect '/compare_hands'
+  end
+
+  erb :game
+end
+
+post '/dealer_hits' do
+  session[:dealer_hand] << session[:shoe].pop
+  redirect '/dealer_turn'
+end
+
+get '/compare_hands' do
   @show_hit_or_stay_buttons = false
   @show_dealer_card = true
 
   @dealer_points = hand_value(session[:dealer_hand])
   @player_points = hand_value(session[:player_hand])
 
-  while @dealer_points < 17
-    session[:dealer_hand] << session[:shoe].pop
-    @dealer_points = hand_value(session[:dealer_hand])
-  end
-
   if @dealer_points > 21
     player_wins("Dealer has #{@dealer_points} which is more than 21. You win!")
   elsif @dealer_points == 21
     player_loses("Dealer has 21. Dealer wins.")
   elsif @player_points > @dealer_points
-    player_wins("You have more points than the dealer. You win!")
+    player_wins("You have #{@player_points} points, the dealer has only #{@dealer_points}. You win!")
   elsif @player_points < @dealer_points
-    player_loses("Dealer has more points. Dealer wins.")
+    player_loses("Dealer has #{@dealer_points} points, you have only #{@player_points}. Dealer wins.")
   else
     tie("It's a tie.")
   end
