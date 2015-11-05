@@ -169,7 +169,7 @@ get '/dealer_turn' do
     @show_next_card_button  = true
   else
     redirect '/compare_hands'
-  end
+  end 
 
   erb :game
 end
