@@ -5,7 +5,7 @@ require 'pry'
 CARD_VALUES = ["ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "jack", "queen", "king"]
 CARD_SUITS = [:clubs, :diamonds, :hearts, :spades]
 INITIAL_MONEY = 500
-IMAGE_PATH = "images/cards/"
+CARD_IMAGE_PATH = "images/cards/"
 
 use Rack::Session::Cookie, :key => 'rack.session',
                            :path => '/',
@@ -18,11 +18,11 @@ helpers do
   end
 
   def show_card(card)
-    IMAGE_PATH + "#{card[1]}_#{card[0]}.jpg"
+    CARD_IMAGE_PATH + "#{card[1]}_#{card[0]}.jpg"
   end
 
   def cover_card
-    IMAGE_PATH + "cover.jpg"
+    CARD_IMAGE_PATH + "cover.jpg"
   end
 
   def card_value(card)
@@ -202,6 +202,7 @@ get '/compare_hands' do
 end
 
 get '/end_game' do
+  @player_name = session[:player_name]
   @player_money = session[:player_money]
   erb :end_game
 end
